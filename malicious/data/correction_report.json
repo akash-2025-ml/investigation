@@ -1,0 +1,42 @@
+{
+  "correction_summary": {
+    "original_samples": 4200,
+    "corrected_samples": 4200,
+    "original_labels": {
+      "Malicious": 2100,
+      "Not Malicious": 2100
+    },
+    "corrected_labels": {
+      "No Action": 1901,
+      "Warning": 1250,
+      "Malicious": 550,
+      "Spam": 499
+    }
+  },
+  "critical_fixes": {
+    "malicious_signal_activation": {
+      "before": 26.190476190476193,
+      "after": 100.0,
+      "target": 90.0,
+      "fixed": "True"
+    },
+    "content_spam_pattern": {
+      "before_malicious_mean": 0.5153628571428572,
+      "after_malicious_mean": 0.5284181818181818,
+      "target": "<0.25",
+      "fixed": "False"
+    }
+  },
+  "label_transitions": {
+    "Malicious": {
+      "Warning": 1250,
+      "Malicious": 550,
+      "Spam": 199,
+      "No Action": 101
+    },
+    "Not Malicious": {
+      "No Action": 1800,
+      "Spam": 300
+    }
+  }
+}
