@@ -55,33 +55,17 @@ print(f"\nClass balance:")
 print(df['Binary_Label'].value_counts(normalize=True).round(3))
 
 # ==============================================================================
-# IDENTIFY AND REMOVE LABEL-LEAKING FEATURES
+# PREPARE FEATURES (KEEPING ALL FEATURES)
 # ==============================================================================
 
-print_header("🚨 REMOVING LABEL-LEAKING FEATURES", '=')
+print_header("📋 USING ALL FEATURES", '=')
 
-# These features are computed AFTER knowing the label - they leak information
-LEAKING_FEATURES = [
-    'sender_known_malicious',
-    'smtp_ip_known_malicious',
-    'return_path_known_malicious',
-    'final_url_known_malicious',
-    'any_file_hash_malicious',
-    'total_components_detected_malicious'  # Aggregates other "malicious" features
-]
-
-print("Removing these features (they contain label information):")
-for feat in LEAKING_FEATURES:
-    if feat in df.columns:
-        print(f"  ❌ {feat}")
-
-# Prepare features and target
-X = df.drop(['Binary_Label'] + [f for f in LEAKING_FEATURES if f in df.columns],
-            axis=1, errors='ignore')
+# Prepare features and target - keeping ALL 20 features
+X = df.drop(['Binary_Label'], axis=1)
 y = df['Binary_Label'].map({'Malicious': 1, 'Not-Malicious': 0})
 
-print(f"\n✓ Remaining features: {X.shape[1]}")
-print(f"  Features: {', '.join(X.columns[:5])}...")
+print(f"✓ Total features: {X.shape[1]}")
+print(f"  Features: {', '.join(X.columns.tolist())}")
 
 # ==============================================================================
 # DATA QUALITY CHECKS
@@ -339,7 +323,6 @@ model_package = {
     'model': best_model,
     'scaler': scaler,
     'feature_names': X.columns.tolist(),
-    'removed_features': LEAKING_FEATURES,
     'model_name': best_model_name,
     'test_metrics': {
         'accuracy': accuracy_score(y_test, y_test_pred),
@@ -348,10 +331,10 @@ model_package = {
     }
 }
 
-with open('best_model_no_leakage.pkl', 'wb') as f:
+with open('best_model.pkl', 'wb') as f:
     pickle.dump(model_package, f)
 
-print("✓ Model saved to: best_model_no_leakage.pkl")
+print("✓ Model saved to: best_model.pkl")
 print(f"  Model type: {best_model_name}")
 print(f"  Features: {len(X.columns)}")
 print(f"  Test F1: {f1_score(y_test, y_test_pred):.4f}")
@@ -363,7 +346,7 @@ print(f"  Test F1: {f1_score(y_test, y_test_pred):.4f}")
 print_header("💡 RECOMMENDATIONS & CONCLUSIONS")
 
 print("✅ What We Did:")
-print("  1. Removed 6 label-leaking features")
+print("  1. Used all 20 features")
 print("  2. Applied strong regularization to all models")
 print("  3. Used proper train/val/test splits (60/20/20)")
 print("  4. Applied 5-fold cross-validation")
@@ -394,14 +377,12 @@ print("  1. Test on completely new data (not from same distribution)")
 print("  2. Monitor performance over time (concept drift)")
 print("  3. Investigate false positives/negatives manually")
 print("  4. Consider ensemble methods if needed")
-print("  5. DO NOT add back the removed 'known_malicious' features")
 
 print("\n💭 Remember:")
-print("  - 100% accuracy = you're probably cheating (via label leakage)")
-print("  - 80-90% accuracy = realistic for real-world malware detection")
-print("  - Lower train accuracy with high validation accuracy > vice versa")
+print("  - Monitor train vs validation gap to detect overfitting")
+print("  - Test on unseen data to verify generalization")
 print("  - Generalization matters more than raw performance")
 
 print("\n" + "="*80)
-print("Analysis complete! Check best_model_no_leakage.pkl")
+print("Analysis complete! Check best_model.pkl")
 print("="*80)
