@@ -168,8 +168,8 @@ def generate_not_warning_record():
     # *** CRITICAL FIX: is_high_risk_role_targeted = mostly False (max 5%) ***
     record['is_high_risk_role_targeted'] = weighted_choice([True, False], [0.05, 0.95])
 
-    # *** CRITICAL FIX: urgency_keywords_present = mostly False (max 8%) ***
-    record['urgency_keywords_present'] = weighted_choice([True, False], [0.08, 0.92])
+    # *** CRITICAL FIX: urgency_keywords_present as FLOAT (0.0 to 0.35) ***
+    record['urgency_keywords_present'] = round(random.uniform(0.0, 0.35), 10)
 
     # request_type - ONLY benign types for Not-Warning
     record['request_type'] = weighted_choice(
@@ -227,7 +227,7 @@ print("   - dns_morphing_detected = ALWAYS False")
 print("   - url_decoded_spoof_detected = ALWAYS False")
 print("   - final_url_known_malicious = ALWAYS False")
 print("   - is_high_risk_role_targeted = max 5%")
-print("   - urgency_keywords_present = max 8%")
+print("   - urgency_keywords_present = FLOAT 0.0 to 0.35")
 print("   - request_type = ONLY benign types")
 
 N = 1000
@@ -275,7 +275,12 @@ domain_mal_true = sum(1 for r in generated_records if r['domain_known_malicious'
 dns_morph_true = sum(1 for r in generated_records if r['dns_morphing_detected'] == True)
 url_spoof_true = sum(1 for r in generated_records if r['url_decoded_spoof_detected'] == True)
 high_risk_true = sum(1 for r in generated_records if r['is_high_risk_role_targeted'] == True)
-urgency_true = sum(1 for r in generated_records if r['urgency_keywords_present'] == True)
+
+# Calculate urgency_keywords_present statistics (now a float 0.0-0.35)
+urgency_values = [r['urgency_keywords_present'] for r in generated_records]
+urgency_min = min(urgency_values)
+urgency_max = max(urgency_values)
+urgency_avg = sum(urgency_values) / len(urgency_values)
 
 print(f"\n🔒 CRITICAL CHECKS (should be 0 or very low):")
 print(f"   sender_spoof_detected = True:      {sender_spoof_true} {'✅' if sender_spoof_true == 0 else '❌'}")
@@ -284,7 +289,7 @@ print(f"   domain_known_malicious = True:     {domain_mal_true} {'✅' if domain
 print(f"   dns_morphing_detected = True:      {dns_morph_true} {'✅' if dns_morph_true == 0 else '❌'}")
 print(f"   url_decoded_spoof_detected = True: {url_spoof_true} {'✅' if url_spoof_true == 0 else '❌'}")
 print(f"   is_high_risk_role_targeted = True: {high_risk_true} ({high_risk_true/N*100:.1f}%) {'✅' if high_risk_true < 60 else '❌'}")
-print(f"   urgency_keywords_present = True:   {urgency_true} ({urgency_true/N*100:.1f}%) {'✅' if urgency_true < 100 else '❌'}")
+print(f"   urgency_keywords_present (FLOAT):  min={urgency_min:.2f}, max={urgency_max:.2f}, avg={urgency_avg:.2f} {'✅' if urgency_max <= 0.35 else '❌'}")
 
 # Check for dangerous combinations
 dangerous_combo = sum(1 for r in generated_records

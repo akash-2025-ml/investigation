@@ -139,7 +139,8 @@ def generate_warning_record():
 
     # === HIGH RISK INDICATORS (KEY FOR WARNINGS) ===
     record['is_high_risk_role_targeted'] = weighted_choice([True, False], [0.73, 0.27])
-    record['urgency_keywords_present'] = weighted_choice([True, False], [0.86, 0.14])
+    # urgency_keywords_present as FLOAT (0.4 to 0.95) for Warning records
+    record['urgency_keywords_present'] = round(random.uniform(0.4, 0.95), 10)
 
     # request_type - KEY FEATURE
     record['request_type'] = weighted_choice(
@@ -231,13 +232,18 @@ print("="*80)
 
 # Count key features
 high_risk_true = sum(1 for r in generated_records if r['is_high_risk_role_targeted'] == True)
-urgency_true = sum(1 for r in generated_records if r['urgency_keywords_present'] == True)
 spoof_true = sum(1 for r in generated_records if r['sender_spoof_detected'] == True)
 domain_mal_true = sum(1 for r in generated_records if r['domain_known_malicious'] == True)
 
+# Calculate urgency_keywords_present statistics (now a float 0.4-0.95)
+urgency_values = [r['urgency_keywords_present'] for r in generated_records]
+urgency_min = min(urgency_values)
+urgency_max = max(urgency_values)
+urgency_avg = sum(urgency_values) / len(urgency_values)
+
 print(f"\n📊 Key Feature Distribution:")
 print(f"   is_high_risk_role_targeted = True: {high_risk_true} ({high_risk_true/N*100:.1f}%)")
-print(f"   urgency_keywords_present = True:   {urgency_true} ({urgency_true/N*100:.1f}%)")
+print(f"   urgency_keywords_present (FLOAT):  min={urgency_min:.2f}, max={urgency_max:.2f}, avg={urgency_avg:.2f}")
 print(f"   sender_spoof_detected = True:      {spoof_true} ({spoof_true/N*100:.1f}%)")
 print(f"   domain_known_malicious = True:     {domain_mal_true} ({domain_mal_true/N*100:.1f}%)")
 
